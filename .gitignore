@@ -1,32 +1,13 @@
-# Dependencies
-node_modules/
-
-# Next.js
-.next/
-out/
-build/
-
-# Env
+node_modules
+.next
+out
+build
 .env
 .env.local
-.env.*.local
-
-# Supabase
-supabase/.branches
-supabase/.temp
-
-# Logs
+.env*.local
 *.log
-npm-debug.log*
-
-# Editor
-.vscode/
-.idea/
-
-# OS
 .DS_Store
-Thumbs.db
-
-# TypeScript
-*.tsbuildinfo
+.vercel
 next-env.d.ts
+tsconfig.tsbuildinfo
+scripts/seed-users.mjs
