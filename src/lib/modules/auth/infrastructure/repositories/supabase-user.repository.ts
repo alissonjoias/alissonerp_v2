@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { apiClient } from "@/lib/supabase/api-client";
+import { getSessionCookies } from "@/lib/supabase/session";
 import { UserNotFoundError, UserInactiveError, InsufficientPermissionError } from "../../domain/errors";
 import type { User, CreateUserData, UpdateUserData, Role } from "../../domain/entities";
 import type { UserRepository, AuthService } from "../../application/ports";
@@ -12,23 +12,32 @@ const VALID_ROLES: Role[] = [
   "ourives", "motoboy", "entregador", "pcp",
 ];
 
-// Cache em memória: TTL 30s
 const userCache = new Map<string, { data: User; expires: number }>();
 const CACHE_TTL = 30_000;
+
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const API_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(/\/$/, "");
 
 function mapRowToUser(row: any): User {
   return {
     id: row.id,
     email: row.email,
     nome: row.nome,
-    role: row.role,
+    role: "consultora",
     ativo: row.ativo,
     vendedorId: row.vendedor_id ?? null,
     depositoId: row.deposito_id ?? null,
-    maxDesconto: Number(row.mx_desconto_permitido),
+    maxDesconto: 0,
     criadoEm: new Date(row.created_at),
     atualizadoEm: new Date(row.updated_at),
   };
+}
+
+async function fetchUsers(path: string, token: string): Promise<User[]> {
+  const res = await apiClient(path, { token, schema: "alissonerp_v2" });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data ?? []).map(mapRowToUser);
 }
 
 export function createUserRepository(): UserRepository {
@@ -37,101 +46,126 @@ export function createUserRepository(): UserRepository {
       const cached = userCache.get(id);
       if (cached && cached.expires > Date.now()) return cached.data;
 
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("usuarios")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const { accessToken } = await getSessionCookies();
+      if (!accessToken) return null;
 
-      if (!data) return null;
-      const user = mapRowToUser(data);
-      userCache.set(id, { data: user, expires: Date.now() + CACHE_TTL });
+      const users = await fetchUsers(`/rest/v1/usuarios?id=eq.${id}&select=*`, accessToken);
+      const user = users[0] ?? null;
+      if (user) {
+        userCache.set(id, { data: user, expires: Date.now() + CACHE_TTL });
+      }
       return user;
     },
 
     async findByEmail(email: string): Promise<User | null> {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("usuarios")
-        .select("*")
-        .eq("email", email)
-        .single();
-      return data ? mapRowToUser(data) : null;
+      const { accessToken } = await getSessionCookies();
+      if (!accessToken) return null;
+
+      const users = await fetchUsers(`/rest/v1/usuarios?email=eq.${encodeURIComponent(email)}&select=*`, accessToken);
+      return users[0] ?? null;
     },
 
     async findAll(): Promise<User[]> {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("usuarios")
-        .select("*")
-        .order("nome");
-      return (data ?? []).map(mapRowToUser);
+      const { accessToken } = await getSessionCookies();
+      if (!accessToken) return [];
+      return fetchUsers("/rest/v1/usuarios?select=*&order=nome.asc", accessToken);
     },
 
     async create(input: CreateUserData): Promise<User> {
-      const admin = createAdminClient();
-
-      const { data: authUser, error: authError } = await admin.auth.admin.createUser({
-        email: input.email,
-        password: input.password,
-        email_confirm: true,
+      // Cria usuário no Supabase Auth (service_role)
+      const authRes = await fetch(`${API_URL}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          email: input.email,
+          password: input.password,
+          email_confirm: true,
+        }),
       });
-      if (authError) throw new Error(authError.message);
-      if (!authUser.user) throw new Error("Falha ao criar usuário no Supabase");
 
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from("usuarios")
-        .insert({
-          id: authUser.user.id,
+      if (!authRes.ok) {
+        const err = await authRes.json();
+        throw new Error(err?.msg ?? "Falha ao criar usuário no Supabase");
+      }
+
+      const authUser = (await authRes.json()) as { id: string };
+
+      // Insere na tabela usuarios (service_role bypassa RLS)
+      const insertRes = await apiClient("/rest/v1/usuarios", {
+        method: "POST",
+        body: {
+          id: authUser.id,
           email: input.email,
           nome: input.nome,
-          role: input.role,
           vendedor_id: input.vendedorId ?? null,
-        })
-        .select()
-        .single();
+        },
+        token: SERVICE_ROLE_KEY,
+        schema: "alissonerp_v2",
+      });
 
-      if (error) throw new Error(error.message);
+      if (!insertRes.ok) {
+        const err = await insertRes.json();
+        throw new Error(err?.message ?? "Falha ao inserir usuário");
+      }
+
+      const data = await insertRes.json();
       return mapRowToUser(data);
     },
 
     async update(id: string, input: UpdateUserData): Promise<User> {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from("usuarios")
-        .update({
-          ...(input.nome !== undefined && { nome: input.nome }),
-          ...(input.role !== undefined && { role: input.role }),
-          ...(input.vendedorId !== undefined && { vendedor_id: input.vendedorId }),
-          ...(input.maxDesconto !== undefined && { mx_desconto_permitido: input.maxDesconto }),
-        })
-        .eq("id", id)
-        .select()
-        .single();
+      const { accessToken } = await getSessionCookies();
+      if (!accessToken) throw new UserNotFoundError();
 
-      if (error) throw new Error(error.message);
-      return mapRowToUser(data);
+      const body: Record<string, unknown> = {};
+      if (input.nome !== undefined) body.nome = input.nome;
+      if (input.vendedorId !== undefined) body.vendedor_id = input.vendedorId;
+
+      const res = await apiClient(`/rest/v1/usuarios?id=eq.${id}`, {
+        method: "PATCH",
+        body,
+        token: accessToken,
+        schema: "alissonerp_v2",
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.message ?? "Falha ao atualizar usuário");
+      }
+
+      userCache.delete(id);
+
+      const users = await fetchUsers(`/rest/v1/usuarios?id=eq.${id}&select=*`, accessToken);
+      const user = users[0];
+      if (!user) throw new UserNotFoundError();
+      return user;
     },
 
     async deactivate(id: string): Promise<void> {
-      const supabase = await createClient();
-      const { error } = await supabase
-        .from("usuarios")
-        .update({ ativo: false })
-        .eq("id", id);
-      if (error) throw new Error(error.message);
+      const { accessToken } = await getSessionCookies();
+      if (!accessToken) throw new UserNotFoundError();
+
+      await apiClient(`/rest/v1/usuarios?id=eq.${id}`, {
+        method: "PATCH",
+        body: { ativo: false },
+        token: accessToken,
+        schema: "alissonerp_v2",
+      });
       userCache.delete(id);
     },
 
     async activate(id: string): Promise<void> {
-      const supabase = await createClient();
-      const { error } = await supabase
-        .from("usuarios")
-        .update({ ativo: true })
-        .eq("id", id);
-      if (error) throw new Error(error.message);
+      const { accessToken } = await getSessionCookies();
+      if (!accessToken) throw new UserNotFoundError();
+
+      await apiClient(`/rest/v1/usuarios?id=eq.${id}`, {
+        method: "PATCH",
+        body: { ativo: true },
+        token: accessToken,
+        schema: "alissonerp_v2",
+      });
       userCache.delete(id);
     },
   };
@@ -140,11 +174,14 @@ export function createUserRepository(): UserRepository {
 export function createAuthService(userRepo: UserRepository): AuthService {
   return {
     async getCurrentUser(): Promise<User> {
-      const supabase = await createClient();
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new UserNotFoundError();
+      const { accessToken } = await getSessionCookies();
+      if (!accessToken) throw new UserNotFoundError();
 
-      const user = await userRepo.findById(authUser.id);
+      const userRes = await apiClient("/auth/v1/user", { token: accessToken });
+      if (!userRes.ok) throw new UserNotFoundError();
+
+      const { id } = (await userRes.json()) as { id: string };
+      const user = await userRepo.findById(id);
       if (!user) throw new UserNotFoundError();
       if (!user.ativo) throw new UserInactiveError();
 
@@ -165,7 +202,6 @@ export function createAuthService(userRepo: UserRepository): AuthService {
       if (admins.includes(user.role)) return;
       if (user.role === minRole) return;
 
-      // Hierarquia simples: gerente > operador
       const hierarchy: Record<string, number> = {
         consultora: 1,
         ourives: 1,

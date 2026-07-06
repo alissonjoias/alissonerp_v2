@@ -1,54 +1,111 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { UserInactiveError } from "../domain/errors";
-import { createUserRepository, createAuthService } from "../infrastructure/repositories/supabase-user.repository";
+
+import { apiClient } from "@/lib/supabase/api-client";
+import { clearSessionCookies, getSessionCookies, setSessionCookies } from "@/lib/supabase/session";
+import { UserNotFoundError, UserInactiveError } from "../domain/errors";
+import type { User } from "../domain/entities";
 
 export type ApiResponse<T> = { data?: T; error?: { code: string; message: string } };
 
-export async function login(email: string, password: string): Promise<ApiResponse<null>> {
-  const supabase = await createClient();
+async function fetchUserById(
+  userId: string,
+  token: string,
+): Promise<User | null> {
+  const res = await apiClient(`/rest/v1/usuarios?id=eq.${userId}&select=*`, {
+    token,
+    schema: "alissonerp_v2",
+  });
 
-  const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-  if (authError) {
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  const row = data?.[0];
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    email: row.email,
+    nome: row.nome,
+    role: "consultora",
+    ativo: row.ativo,
+    vendedorId: row.vendedor_id ?? null,
+    depositoId: row.deposito_id ?? null,
+    maxDesconto: 0,
+    criadoEm: new Date(row.created_at),
+    atualizadoEm: new Date(row.updated_at),
+  };
+}
+
+export async function login(email: string, password: string): Promise<ApiResponse<null>> {
+  const res = await apiClient("/auth/v1/token?grant_type=password", {
+    method: "POST",
+    body: { email, password },
+  });
+
+  if (!res.ok) {
     return {
       error: {
         code: "INVALID_CREDENTIALS",
-        message: authError.message === "Invalid login credentials"
-          ? "Email ou senha inválidos."
-          : authError.message,
+        message: "Email ou senha inválidos.",
       },
     };
   }
 
-  // Verificar se usuário está ativo
-  try {
-    const repo = createUserRepository();
-    const authService = createAuthService(repo);
-    await authService.getCurrentUser();
-  } catch (err) {
-    // Se inativo, faz logout e retorna erro
-    await supabase.auth.signOut();
-    if (err instanceof UserInactiveError) {
-      return { error: { code: "USER_INACTIVE", message: err.message } };
-    }
-    await supabase.auth.signOut();
-    return { error: { code: "USER_NOT_FOUND", message: "Usuário não encontrado no sistema." } };
+  const auth = await res.json();
+  await setSessionCookies(auth.access_token, auth.refresh_token);
+
+  const user = await fetchUserById(auth.user.id, auth.access_token);
+
+  if (!user) {
+    await clearSessionCookies();
+    return {
+      error: {
+        code: "USER_NOT_FOUND",
+        message: "Usuário não encontrado no sistema.",
+      },
+    };
   }
 
-  redirect("/dashboard");
+  const roleFromAuth = (auth.user.user_metadata?.role) ?? user.role;
+  user.role = roleFromAuth as User["role"];
+
+  if (!user.ativo) {
+    await clearSessionCookies();
+    return { error: { code: "USER_INACTIVE", message: "Usuário desativado, procure o administrador." } };
+  }
+
+  return { data: null };
 }
 
 export async function logout(): Promise<void> {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  const { accessToken } = await getSessionCookies();
+  if (accessToken) {
+    await apiClient("/auth/v1/logout", { method: "POST", token: accessToken });
+  }
+  await clearSessionCookies();
   redirect("/auth/v1/login");
 }
 
-export async function getCurrentUser() {
-  const repo = createUserRepository();
-  const authService = createAuthService(repo);
-  return authService.getCurrentUser();
+export async function getCurrentUser(): Promise<User> {
+  const { accessToken } = await getSessionCookies();
+  if (!accessToken) throw new UserNotFoundError();
+
+  const userRes = await apiClient("/auth/v1/user", { token: accessToken });
+  if (!userRes.ok) throw new UserNotFoundError();
+
+  const authUser = (await userRes.json()) as {
+    id: string;
+    user_metadata?: { role?: string };
+  };
+
+  const user = await fetchUserById(authUser.id, accessToken);
+  if (!user) throw new UserNotFoundError();
+  if (!user.ativo) throw new UserInactiveError();
+
+  const roleFromAuth = (authUser.user_metadata?.role) ?? user.role;
+  user.role = roleFromAuth as User["role"];
+
+  return user;
 }

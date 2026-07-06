@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
+import { login } from "@/lib/modules/auth/actions/login.action";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Informe um email válido." }),
@@ -26,23 +26,28 @@ export function LoginForm() {
   });
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      const result = await login(data.email, data.password);
 
-    if (error) {
-      toast.error("Erro ao entrar", {
-        description: error.message === "Invalid login credentials"
-          ? "Email ou senha inválidos."
-          : error.message,
+      if (result?.error) {
+        if (result.error.code === "USER_INACTIVE") {
+          toast.error("Usuário desativado", {
+            description: "Usuário desativado, procure o administrador.",
+          });
+        } else {
+          toast.error("Erro ao entrar", {
+            description: result.error.message,
+          });
+        }
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch {
+      toast.error("Sem conexão", {
+        description: "Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.",
       });
-      return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
@@ -93,7 +98,7 @@ export function LoginForm() {
                 id="login-remember"
                 name={field.name}
                 checked={field.value}
-                onCheckedChange={(checked) => field.onChange(Boolean(checked))}
+                onCheckedChange={(checked: boolean) => field.onChange(checked)}
                 aria-invalid={fieldState.invalid}
               />
               <FieldContent>

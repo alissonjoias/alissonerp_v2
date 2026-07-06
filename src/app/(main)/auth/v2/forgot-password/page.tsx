@@ -1,21 +1,23 @@
 import Link from "next/link";
 
 import { APP_CONFIG } from "@/config/app-config";
-import { LoginForm } from "../../_components/login-form";
+import { ForgotPasswordForm } from "../../_components/forgot-password-form";
 
-export default function LoginV2() {
+export default function ForgotPasswordV2() {
   return (
     <>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[350px]">
         <div className="space-y-2 text-center">
-          <h1 className="font-medium text-3xl">{APP_CONFIG.name}</h1>
-          <p className="text-muted-foreground text-sm">Entre com seu email e senha.</p>
+          <h1 className="font-medium text-3xl">Recuperar senha</h1>
+          <p className="text-muted-foreground text-sm">
+            Informe seu email cadastrado e enviaremos um link para redefinir sua senha.
+          </p>
         </div>
         <div className="space-y-4">
-          <LoginForm />
+          <ForgotPasswordForm />
           <div className="text-center text-sm">
-            <Link prefetch={false} href="/auth/v2/forgot-password" className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
-              Esqueceu sua senha?
+            <Link prefetch={false} href="/auth/v2/login" className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
+              Voltar para o login
             </Link>
           </div>
         </div>
