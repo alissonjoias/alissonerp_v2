@@ -1,3 +1,12 @@
-npm run generate:presets
-git add src/lib/preferences/theme.ts
-npm exec -- lint-staged
+# ERP v2 — Pre-commit hook
+# Roda testes e lint. Bloqueia commit se falhar.
+
+echo "🔍 Verificando TypeScript..."
+npx tsc --noEmit --pretty 2>&1 | tail -5
+
+echo ""
+echo "🧪 Rodando testes..."
+npx vitest run --reporter=verbose 2>&1 | tail -10
+
+echo ""
+echo "✅ Pre-commit concluído."

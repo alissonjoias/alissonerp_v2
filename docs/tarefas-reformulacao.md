@@ -395,31 +395,31 @@
 
 ## Resumo
 
-| # | Tarefa | Dias |
-|---|--------|------|
+| # | Tarefa | Dias | Status |
+|---|--------|------|--------|
 | **BLOCO 1 — COMERCIAL** |
-| 001 | Projeto no ar — Next.js + Supabase + Vercel | 1–2 |
-| 002 | Tela de login conectada ao Supabase Auth | 1–3 |
-| 003 | Middleware global — ninguém acessa sem login | 2–3 |
-| 004 | Centralizar roles — uma única fonte da verdade | 3–4 |
-| 005 | Sidebar dinâmica por cargo | 4–5 |
-| 006 | Dashboard base com tema da marca | 5–7 |
-| 007 | Catálogo de produtos (listagem e busca) | 8–10 |
-| 008 | Cadastro e edição de produto | 10–12 |
-| 009 | Clientes — cadastro e busca | 10–12 |
-| 010 | Estoque — consulta de saldo e movimentações | 13–14 |
-| 011 | Vendedores vinculados ao sistema | 12 |
-| 012 | PDV — wizard de venda | 15–17 |
-| 013 | PDV — formas de pagamento | 16–18 |
-| 014 | Mercado Pago e PagBank | 17–19 |
-| 015 | Crediário | 18–20 |
-| 016 | Vale-troca e devoluções | 19–20 |
-| 017 | Financeiro da loja | 19–20 |
+| 001 | Projeto no ar — Next.js + Supabase + Vercel | 07/07 a 08/07 | ⬜ Rafael |
+| 002 | Tela de login conectada ao Supabase Auth | 07/07 a 09/07 | ✅ Concluído |
+| 003 | Middleware global — ninguém acessa sem login | 08/07 a 09/07 | ✅ Concluído |
+| 004 | Centralizar roles — uma única fonte da verdade | 09/07 a 10/07 | ✅ Concluído |
+| 005 | Sidebar dinâmica por cargo | 10/07 a 11/07 | ✅ Concluído |
+| 006 | Dashboard base com tema da marca | 11/07 a 13/07 | ⬜ Rafael |
+| 007 | Catálogo de produtos (listagem e busca) | 14/07 a 16/07 | ⬜ Jonathan |
+| 008 | Cadastro e edição de produto | 16/07 a 18/07 | ⬜ Jonathan |
+| 009 | Clientes — cadastro e busca | 16/07 a 18/07 | ⬜ Jonathan |
+| 010 | Estoque — consulta de saldo e movimentações | 19/07 a 20/07 | ⬜ Jonathan |
+| 011 | Vendedores vinculados ao sistema | 18/07 | ⬜ Jonathan |
+| 012 | PDV — wizard de venda | 21/07 a 23/07 | ⬜ Jonathan |
+| 013 | PDV — formas de pagamento | 22/07 a 24/07 | ⬜ Jonathan |
+| 014 | Mercado Pago e PagBank | 23/07 a 25/07 | ⬜ Jonathan |
+| 015 | Crediário | 24/07 a 26/07 | ⬜ Jonathan |
+| 016 | Vale-troca e devoluções | 25/07 a 26/07 | ⬜ Jonathan |
+| 017 | Financeiro da loja | 25/07 a 26/07 | ⬜ Jonathan |
 | **BLOCO 2 — FÁBRICA** |
-| 018 | Ordens de serviço (7 tipos) | 21–25 |
-| 019 | PCP — apontamentos e controle de peso | 26–29 |
-| 020 | Protocolo de peças | 30–32 |
-| 021 | Distribuição de produção | 33–35 |
-| 022 | Compras (ouro, insumos, comerciais) | 36–38 |
-| 023 | Dashboards da fábrica | 39–42 |
-| 024 | Transição final | 43–45 |
+| 018 | Ordens de serviço (7 tipos) | 27/07 a 31/07 | ⬜ Jonathan |
+| 019 | PCP — apontamentos e controle de peso | 01/08 a 04/08 | ⬜ Jonathan |
+| 020 | Protocolo de peças | 30–32 | ⬜ Jonathan |
+| 021 | Distribuição de produção | 33–35 | ⬜ Jonathan |
+| 022 | Compras (ouro, insumos, comerciais) | 36–38 | ⬜ Jonathan |
+| 023 | Dashboards da fábrica | 39–42 | ⬜ Jonathan |
+| 024 | Transição final | 43–45 | ⬜ Jonathan |
