@@ -1,0 +1,94 @@
+# Regras do Projeto — ERP Alisson Joias v2
+
+> **Auto-carregado em toda sessão de IA. Não precisa pedir.**
+
+## Stack fixa
+- Next.js 16 (App Router) + TypeScript strict + TailwindCSS v4 + shadcn/ui
+- Banco: Supabase self-hosted — schema `alissonerp` (246 tabelas, NUNCA criar tabela nova)
+- Forms: react-hook-form + Zod v4
+- Testes: Vitest — cobertura mínima 80%
+
+## Regras absolutas (violação = código rejeitado)
+1. NUNCA usar `any`
+2. NUNCA criar componente > 300 linhas
+3. NUNCA criar tabela ou migration nova (banco já existe)
+4. NUNCA implementar funcionalidade sem spec.md aprovado
+5. NUNCA usar componente fora do catálogo de `agents/ui-spec.md`
+6. NUNCA fazer formulário sem react-hook-form + Zod + Field/FieldLabel/FieldError
+7. SEMPRE validar Server Action com Zod antes do caso de uso
+8. SEMPRE tratar estados: loading (Spinner/Skeleton), vazio (Empty), erro (toast sonner)
+9. SEMPRE usar os componentes de `@/components/ui/` — nunca CSS customizado
+10. SEMPRE SQL em `supabase/migrations/` — NUNCA no frontend
+
+## Antes de implementar QUALQUER coisa
+1. Leia `specs/changes/NNN-slug/spec.md` — o QUE construir
+2. Leia `specs/changes/NNN-slug/design.md` — COMO construir
+3. Leia `agents/ui-spec.md` — catálogo de componentes com código
+4. Verifique `docs/extraction/<modulo>.md` — regras de negócio do legado
+5. Confirme que a task está em `docs/tarefas-reformulacao.md`
+
+## Estrutura de uma tela nova
+```
+src/app/(main)/dashboard/<modulo>/
+  page.tsx          ← Server Component (busca dados)
+  _components/      ← Client Components (exibe)
+    <modulo>-table.tsx
+    <modulo>-form.tsx
+    <modulo>-dialog.tsx
+```
+
+## Exemplo de formulário (padrão obrigatório)
+```tsx
+"use client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Field, FieldLabel, FieldError, FieldGroup } from "@/components/ui/field";
+
+const schema = z.object({ nome: z.string().min(1, "Obrigatório") });
+
+export function MeuForm() {
+  const form = useForm({ resolver: zodResolver(schema) });
+  
+  async function onSubmit(data: z.infer<typeof schema>) {
+    const result = await minhaAction(data);
+    if (result.error) { toast.error(result.error.message); return; }
+    toast.success("Salvo com sucesso!");
+  }
+  
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <Controller control={form.control} name="nome"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel>Nome</FieldLabel>
+            <Input {...field} />
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
+      <Button type="submit">Salvar</Button>
+    </form>
+  );
+}
+```
+
+## Exemplo de Server Action (padrão obrigatório)
+```tsx
+"use server";
+import { z } from "zod";
+
+const schema = z.object({ nome: z.string().min(1) });
+
+export async function minhaAction(data: unknown) {
+  const parsed = schema.safeParse(data);
+  if (!parsed.success) {
+    return { error: { code: "VALIDATION_ERROR", message: parsed.error.issues[0].message } };
+  }
+  // lógica de negócio aqui
+  return { data: resultado };
+}
+```
