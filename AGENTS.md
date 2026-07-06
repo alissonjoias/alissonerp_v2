@@ -30,7 +30,7 @@
 6. **Toda Server Action valida input com Zod** antes do caso de uso.
 7. **Nenhum segredo versionado.** Apenas em `.env.local`.
 8. **Nenhuma decisão estrutural nasce no código.** Toda mudança passa por: spec → design → implementação → revisão → merge.
-9. **Cobertura de testes ≥ 80%.** Se falhar, o código é rejeitado e precisa ser refeito.
+9. **Cobertura de testes ≥ 80%.** Teste cobre lógica de negócio (entities, value objects, errors), Server Actions e componentes com estado. Componente puramente visual (wrapper, layout) não precisa de teste isolado — a cobertura de integração já pega.
 10. **Toda tela/componente segue `agents/ui-spec.md`.** Desvio do padrão = rejeitado no code review.
 11. **Nenhuma funcionalidade sem spec aprovada.** Se não está na spec, não vai pro código. Anti-scope-creep: ver `agents/scope-guard.md`.
 
@@ -176,6 +176,32 @@ export async function minhaAction(data: unknown) {
   return { data: resultado };
 }
 ```
+### 6. Teste junto com o código (obrigatório)
+
+```
+src/lib/modules/<modulo>/
+  actions/minha-action.ts          ← implementação
+  tests/unit/minha-action.test.ts  ← teste NASCE JUNTO
+```
+
+A IA gera o teste na mesma resposta que o código. Exemplo mínimo:
+
+```typescript
+import { describe, it, expect } from "vitest";
+import { minhaAction } from "../actions/minha-action";
+
+describe("minhaAction", () => {
+  it("deve retornar erro para input inválido", async () => {
+    const result = await minhaAction({ nome: "" });
+    expect(result.error?.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("deve processar input válido", async () => {
+    const result = await minhaAction({ nome: "Teste" });
+    expect(result.data).toBeDefined();
+  });
+});
+```
 
 ---
 
@@ -215,9 +241,15 @@ Cada agente tem um papel. Você (Rafael) orquestra:
 | Statements | **80%** | ❌ Código rejeitado — refazer |
 
 ### O que testar
-- **Unitários:** entidades, value objects, erros de domínio, regras de negócio puras
-- **Integração:** Server Actions, repositórios Supabase (com mock)
-- **Componentes:** renderização, interação, estados (loading, vazio, erro)
+
+| Camada | Testar? | Motivo |
+|--------|---------|--------|
+| `domain/` entities, errors, value objects | ✅ **Sempre** | Contém regras de negócio puras |
+| `actions/` Server Actions | ✅ **Sempre** | Validam input e orquestram casos de uso |
+| `infrastructure/` repositories | ✅ **Sempre** | Integração com banco (com mock) |
+| Componentes com estado (form, table, dialog) | ✅ **Sempre** | Interatividade, validação, fluxos |
+| Componentes puramente visuais (wrapper, layout) | ⚠️ Opcional | Já coberto por testes de integração |
+| Hooks customizados | ✅ Se têm lógica | `useVenda()` sim, `useMobile()` não |
 
 ### Como rodar
 ```bash
