@@ -57,6 +57,9 @@
 | Funcionalidade sem spec aprovada | ❌ Merge bloqueado |
 | Arquivo > 300 linhas | ❌ Merge bloqueado |
 | Formulário sem react-hook-form + Zod | ❌ Merge bloqueado |
+| `console.log` em produção | ❌ Merge bloqueado |
+
+> ⚠️ Relatórios de revisão (security, testing, code-review, error-handler, performance, a11y, dependencies) são **temporários**. Gerar, ler, aprovar, deletar. Só o que fica no repositório é **spec.md e design.md**.
 
 ---
 

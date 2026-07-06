@@ -216,17 +216,39 @@ Cada agente tem um papel. Você (Rafael) orquestra:
 | Revisar segurança de uma implementação | `security` |
 | Verificar cobertura de testes | `testing` |
 | Revisar qualidade do código | `code-review` |
+| Revisar tratamento de erros e logs de debug | `error-handler` |
 | Garantir padrão visual da tela | `ui-spec` |
 | Extrair regras do sistema legado | `legacy-rules-extractor` |
 | Bloquear funcionalidade fora do escopo (scope creep) | `scope-guard` |
+| Verificar performance (N+1 queries, re-render, bundle) | `performance` |
+| Verificar acessibilidade (teclado, leitor de tela, contraste) | `a11y` |
+| Revisar dependências (vulnerabilidades, licenças) | `dependencies` |
 
 **Fluxo completo para cada mudança:**
 ```
 1. SKILL.md → carrega o checklist de desenvolvimento
-2. spec → design → implementação → revisão (security + testing + code-review)
+2. spec → design → implementação → revisão (security + testing + code-review + error-handler + performance + a11y + dependencies)
 3. scope-guard → verifica se nada foi implementado fora da spec
 4. merge
 ```
+
+**Cada agente gera seu relatório TEMPORARIAMENTE — não versionar:**
+
+```
+specs/changes/NNN-slug/
+  ├── spec.md                 ← PERMANENTE (toda mudança tem)
+  ├── design.md               ← PERMANENTE (toda mudança tem)
+  │
+  ├── security-review.md      ← ⏳ TEMPORÁRIO — deletar após aprovação
+  ├── test-review.md           ← ⏳ TEMPORÁRIO
+  ├── code-review.md           ← ⏳ TEMPORÁRIO
+  ├── error-review.md          ← ⏳ TEMPORÁRIO
+  ├── performance-review.md    ← ⏳ TEMPORÁRIO
+  ├── a11y-review.md           ← ⏳ TEMPORÁRIO
+  └── deps-review.md           ← ⏳ TEMPORÁRIO
+```
+
+**Regra:** spec + design são versionados. Os 7 relatórios de revisão são gerados pelo agente, lidos por Rafael, e deletados quando a mudança é mergeada. Só ficam enquanto a mudança está em aberto.
 
 ---
 
@@ -332,7 +354,13 @@ O `.env.homolog` deve conter as credenciais do banco de **homologação** do sis
 - `agents/ui-spec.md` — catálogo de componentes e padrões de tela
 - `agents/business-rules.md` — regras de negócio consolidadas
 - `docs/adr/` — decisões de arquitetura registradas
-- `docs/security/security-baseline.md` — checklist de 30 itens
+- `agents/security.md` — revisão de segurança
+- `agents/testing.md` — revisão de cobertura de testes
+- `agents/code-review.md` — revisão de código
+- `agents/error-handler.md` — revisão de erros e debug
+- `agents/performance.md` — revisão de performance (N+1, bundle)
+- `agents/a11y.md` — revisão de acessibilidade
+- `agents/dependencies.md` — revisão de dependências
 - `docs/tarefas-reformulacao.md` — 24 tarefas com datas de entrega
 - `docs/extraction/PENDENTES.md` — extrações do legado que o Rafael precisa fazer
 - `specs/shared/convencoes-de-nomenclatura.md` — como nomear tudo
