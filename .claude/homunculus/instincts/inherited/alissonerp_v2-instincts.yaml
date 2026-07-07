@@ -1,0 +1,358 @@
+# Instincts generated from https://github.com/alissonjoias/alissonerp_v2
+# Generated: 2026-07-07T11:53:12.699Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: alissonerp_v2-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat, fix
+
+## Evidence
+
+- 2 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat(auth): migra autenticacao para REST direto (remove Supabase SDK), fix(auth): ajusta role fallback, adiciona cache, revalidatePath e trata SERVICE_ROLE_KEY vazia
+
+---
+id: alissonerp_v2-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Commit Length
+
+## Action
+
+Write moderate-length commit messages (~82 characters)
+
+## Evidence
+
+- Average commit message length: 82 chars
+- Based on 2 commits
+
+---
+id: alissonerp_v2-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: alissonerp_v2-import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: alissonerp_v2-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Export Style
+
+## Action
+
+Prefer mixed exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: mixed
+
+---
+id: alissonerp_v2-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: app, lib
+
+---
+id: alissonerp_v2-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: alissonerp_v2-instinct-file-naming
+trigger: "When creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct File Naming
+
+## Action
+
+Name the file using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: alissonerp_v2-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Function Naming
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: alissonerp_v2-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: alissonerp_v2-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: alissonerp_v2-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Import Style
+
+## Action
+
+Use alias import style
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: alissonerp_v2-instinct-export-style
+trigger: "When exporting modules or members"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Export Style
+
+## Action
+
+Use mixed export style (both named and default as appropriate)
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: alissonerp_v2-instinct-commit-format
+trigger: "When making a git commit"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Commit Format
+
+## Action
+
+Format the commit message using Conventional Commits with 'feat' or 'fix' prefix
+
+## Evidence
+
+- Seen in commit: feat(auth): migra autenticacao para REST direto (remove Supabase SDK)
+- Seen in commit: fix(auth): ajusta role fallback, adiciona cache, revalidatePath e trata SERVICE_ROLE_KEY vazia
+
+---
+id: alissonerp_v2-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Commit Length
+
+## Action
+
+Keep the message concise, averaging around 82 characters
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: alissonerp_v2-instinct-error-handling
+trigger: "When handling errors in code"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Error Handling
+
+## Action
+
+Use try-catch blocks for error handling
+
+## Evidence
+
+- Pattern in errorHandling.style
+
+---
+id: alissonerp_v2-instinct-test-location
+trigger: "When creating new tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Test Location
+
+## Action
+
+Place test files in a separate directory from source code
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+
+---
+id: alissonerp_v2-instinct-src-layout
+trigger: "When adding new source code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: alissonjoias/alissonerp_v2
+---
+
+# Alissonerp_v2 Instinct Src Layout
+
+## Action
+
+Organize code inside 'app' and 'lib' folders under 'src'
+
+## Evidence
+
+- Pattern in architecture.folderStructure.srcLayout
+- Pattern in architecture.folderStructure.commonFolders
+
