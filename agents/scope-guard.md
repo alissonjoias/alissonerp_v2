@@ -35,6 +35,7 @@ Proteger o escopo definido pela spec e design aprovados. Qualquer funcionalidade
 | Componente novo sem spec | `src/app/(main)/dashboard/<modulo-novo>/` sem pasta em `specs/changes/` |
 | Tabela nova no banco | Migration nova fora do design aprovado |
 | Funcionalidade extra na mesma tela | O componente faz X, Y e Z mas a spec só pedia X |
+| Código novo sem teste correspondente | `server-action.ts` criado sem `server-action.test.ts` |
 | Import de módulo não planejado | `import { algoDoFuturo } from ...` onde `algoDoFuturo` não está na spec |
 | Server Action sem correspondência | Action nova que não corresponde a nenhum caso de uso do design |
 

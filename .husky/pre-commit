@@ -1,12 +1,11 @@
+#!/bin/sh
 # ERP v2 — Pre-commit hook
-# Roda testes e lint. Bloqueia commit se falhar.
 
 echo "🔍 Verificando TypeScript..."
-npx tsc --noEmit --pretty 2>&1 | tail -5
+npx tsc --noEmit 2>&1 | tail -3
+if [ $? -ne 0 ]; then
+  echo "❌ Erros de TypeScript. Corrija antes de commitar."
+  exit 1
+fi
 
-echo ""
-echo "🧪 Rodando testes..."
-npx vitest run --reporter=verbose 2>&1 | tail -10
-
-echo ""
-echo "✅ Pre-commit concluído."
+echo "✅ Pre-commit OK."

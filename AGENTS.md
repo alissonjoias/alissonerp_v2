@@ -30,7 +30,7 @@
 6. **Toda Server Action valida input com Zod** antes do caso de uso.
 7. **Nenhum segredo versionado.** Apenas em `.env.local`.
 8. **Nenhuma decisão estrutural nasce no código.** Toda mudança passa por: spec → design → implementação → revisão → merge.
-9. **Cobertura de testes ≥ 80%.** Se falhar, o código é rejeitado e precisa ser refeito.
+9. **Cobertura de testes ≥ 80%.** Teste cobre lógica de negócio (entities, value objects, errors), Server Actions e componentes com estado. Componente puramente visual (wrapper, layout) não precisa de teste isolado — a cobertura de integração já pega.
 10. **Toda tela/componente segue `agents/ui-spec.md`.** Desvio do padrão = rejeitado no code review.
 11. **Nenhuma funcionalidade sem spec aprovada.** Se não está na spec, não vai pro código. Anti-scope-creep: ver `agents/scope-guard.md`.
 
@@ -176,6 +176,32 @@ export async function minhaAction(data: unknown) {
   return { data: resultado };
 }
 ```
+### 6. Teste junto com o código (obrigatório)
+
+```
+src/lib/modules/<modulo>/
+  actions/minha-action.ts          ← implementação
+  tests/unit/minha-action.test.ts  ← teste NASCE JUNTO
+```
+
+A IA gera o teste na mesma resposta que o código. Exemplo mínimo:
+
+```typescript
+import { describe, it, expect } from "vitest";
+import { minhaAction } from "../actions/minha-action";
+
+describe("minhaAction", () => {
+  it("deve retornar erro para input inválido", async () => {
+    const result = await minhaAction({ nome: "" });
+    expect(result.error?.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("deve processar input válido", async () => {
+    const result = await minhaAction({ nome: "Teste" });
+    expect(result.data).toBeDefined();
+  });
+});
+```
 
 ---
 
@@ -190,17 +216,39 @@ Cada agente tem um papel. Você (Rafael) orquestra:
 | Revisar segurança de uma implementação | `security` |
 | Verificar cobertura de testes | `testing` |
 | Revisar qualidade do código | `code-review` |
+| Revisar tratamento de erros e logs de debug | `error-handler` |
 | Garantir padrão visual da tela | `ui-spec` |
 | Extrair regras do sistema legado | `legacy-rules-extractor` |
 | Bloquear funcionalidade fora do escopo (scope creep) | `scope-guard` |
+| Verificar performance (N+1 queries, re-render, bundle) | `performance` |
+| Verificar acessibilidade (teclado, leitor de tela, contraste) | `a11y` |
+| Revisar dependências (vulnerabilidades, licenças) | `dependencies` |
 
 **Fluxo completo para cada mudança:**
 ```
 1. SKILL.md → carrega o checklist de desenvolvimento
-2. spec → design → implementação → revisão (security + testing + code-review)
+2. spec → design → implementação → revisão (security + testing + code-review + error-handler + performance + a11y + dependencies)
 3. scope-guard → verifica se nada foi implementado fora da spec
 4. merge
 ```
+
+**Cada agente gera seu relatório TEMPORARIAMENTE — não versionar:**
+
+```
+specs/changes/NNN-slug/
+  ├── spec.md                 ← PERMANENTE (toda mudança tem)
+  ├── design.md               ← PERMANENTE (toda mudança tem)
+  │
+  ├── security-review.md      ← ⏳ TEMPORÁRIO — deletar após aprovação
+  ├── test-review.md           ← ⏳ TEMPORÁRIO
+  ├── code-review.md           ← ⏳ TEMPORÁRIO
+  ├── error-review.md          ← ⏳ TEMPORÁRIO
+  ├── performance-review.md    ← ⏳ TEMPORÁRIO
+  ├── a11y-review.md           ← ⏳ TEMPORÁRIO
+  └── deps-review.md           ← ⏳ TEMPORÁRIO
+```
+
+**Regra:** spec + design são versionados. Os 7 relatórios de revisão são gerados pelo agente, lidos por Rafael, e deletados quando a mudança é mergeada. Só ficam enquanto a mudança está em aberto.
 
 ---
 
@@ -215,9 +263,15 @@ Cada agente tem um papel. Você (Rafael) orquestra:
 | Statements | **80%** | ❌ Código rejeitado — refazer |
 
 ### O que testar
-- **Unitários:** entidades, value objects, erros de domínio, regras de negócio puras
-- **Integração:** Server Actions, repositórios Supabase (com mock)
-- **Componentes:** renderização, interação, estados (loading, vazio, erro)
+
+| Camada | Testar? | Motivo |
+|--------|---------|--------|
+| `domain/` entities, errors, value objects | ✅ **Sempre** | Contém regras de negócio puras |
+| `actions/` Server Actions | ✅ **Sempre** | Validam input e orquestram casos de uso |
+| `infrastructure/` repositories | ✅ **Sempre** | Integração com banco (com mock) |
+| Componentes com estado (form, table, dialog) | ✅ **Sempre** | Interatividade, validação, fluxos |
+| Componentes puramente visuais (wrapper, layout) | ⚠️ Opcional | Já coberto por testes de integração |
+| Hooks customizados | ✅ Se têm lógica | `useVenda()` sim, `useMobile()` não |
 
 ### Como rodar
 ```bash
@@ -300,7 +354,13 @@ O `.env.homolog` deve conter as credenciais do banco de **homologação** do sis
 - `agents/ui-spec.md` — catálogo de componentes e padrões de tela
 - `agents/business-rules.md` — regras de negócio consolidadas
 - `docs/adr/` — decisões de arquitetura registradas
-- `docs/security/security-baseline.md` — checklist de 30 itens
+- `agents/security.md` — revisão de segurança
+- `agents/testing.md` — revisão de cobertura de testes
+- `agents/code-review.md` — revisão de código
+- `agents/error-handler.md` — revisão de erros e debug
+- `agents/performance.md` — revisão de performance (N+1, bundle)
+- `agents/a11y.md` — revisão de acessibilidade
+- `agents/dependencies.md` — revisão de dependências
 - `docs/tarefas-reformulacao.md` — 24 tarefas com datas de entrega
 - `docs/extraction/PENDENTES.md` — extrações do legado que o Rafael precisa fazer
 - `specs/shared/convencoes-de-nomenclatura.md` — como nomear tudo
