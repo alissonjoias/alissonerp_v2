@@ -72,6 +72,10 @@ export function createUserRepository(): UserRepository {
     },
 
     async create(input: CreateUserData): Promise<User> {
+      if (!SERVICE_ROLE_KEY) {
+        throw new Error("SERVICE_ROLE_KEY nao configurada — contate o administrador");
+      }
+
       // Cria usuário no Supabase Auth (service_role)
       const authRes = await fetch(`${API_URL}/auth/v1/admin/users`, {
         method: "POST",
