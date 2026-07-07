@@ -15,7 +15,7 @@ const VALID_ROLES: Role[] = [
 const userCache = new Map<string, { data: User; expires: number }>();
 const CACHE_TTL = 30_000;
 
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const API_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!.replace(/\/$/, "");
 
 function mapRowToUser(row: any): User {
@@ -23,7 +23,7 @@ function mapRowToUser(row: any): User {
     id: row.id,
     email: row.email,
     nome: row.nome,
-    role: "consultora",
+    role: row.role ?? "consultora",
     ativo: row.ativo,
     vendedorId: row.vendedor_id ?? null,
     depositoId: row.deposito_id ?? null,
