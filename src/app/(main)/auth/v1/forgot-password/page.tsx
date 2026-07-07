@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { APP_CONFIG } from "@/config/app-config";
-import { LoginForm } from "../../_components/login-form";
+import { ForgotPasswordForm } from "../../_components/forgot-password-form";
 
-export default function LoginV1() {
+export default function ForgotPasswordV1() {
   return (
     <div className="flex h-dvh">
       <div className="hidden bg-primary lg:flex lg:w-1/3 lg:flex-col lg:items-center lg:justify-center">
@@ -18,15 +18,15 @@ export default function LoginV1() {
       <div className="flex w-full items-center justify-center bg-creme-100 p-8 lg:w-2/3">
         <div className="w-full max-w-md space-y-10 py-24 lg:py-32">
           <div className="space-y-4 text-center">
-            <div className="text-2xl font-semibold tracking-tight">Entrar</div>
+            <div className="text-2xl font-semibold tracking-tight">Recuperar senha</div>
             <div className="mx-auto max-w-xl text-muted-foreground">
-              Informe seu email e senha para acessar o sistema.
+              Informe seu email cadastrado e enviaremos um link para redefinir sua senha.
             </div>
           </div>
-          <LoginForm />
+          <ForgotPasswordForm />
           <div className="text-center text-sm">
-            <Link prefetch={false} href="/auth/v1/forgot-password" className="text-muted-foreground underline underline-offset-4 hover:text-primary">
-              Esqueceu sua senha?
+            <Link prefetch={false} href="/auth/v1/login" className="text-muted-foreground underline underline-offset-4 hover:text-primary">
+              Voltar para o login
             </Link>
           </div>
         </div>
